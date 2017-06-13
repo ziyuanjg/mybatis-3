@@ -38,7 +38,7 @@ public class DefaultReflectorFactory implements ReflectorFactory {
   @Override
   public Reflector findForClass(Class<?> type) {
     if (classCacheEnabled) {
-            // synchronized (type) removed see issue #461
+      //如果开启了缓存开关，先查询缓存集合中是否包含type的反射实例，如果不包含则创建新的反射实例，放入缓存中
       Reflector cached = reflectorMap.get(type);
       if (cached == null) {
         cached = new Reflector(type);

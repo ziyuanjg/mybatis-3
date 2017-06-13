@@ -29,16 +29,22 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
   public PropertyTokenizer(String fullname) {
     int delim = fullname.indexOf('.');
     if (delim > -1) {
+      //如果传入的是多级属性名，则name为一级属性，children为次级属性
       name = fullname.substring(0, delim);
       children = fullname.substring(delim + 1);
     } else {
+      //如果传入的是单级属性，name为属性名
       name = fullname;
       children = null;
     }
+    //此处先备份name为了处理属性类型为集合的情况
     indexedName = name;
     delim = name.indexOf('[');
     if (delim > -1) {
+      //如果name代表的属性为集合类型，MyBatis默认用[]表示，如user.books[math]
+      //index表示集合中的指定属性名
       index = name.substring(delim + 1, name.length() - 1);
+      //name表示集合名
       name = name.substring(0, delim);
     }
   }

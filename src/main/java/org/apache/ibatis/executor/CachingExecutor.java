@@ -38,7 +38,9 @@ import org.apache.ibatis.transaction.Transaction;
  */
 public class CachingExecutor implements Executor {
 
+  //实际的操作执行器
   private Executor delegate;
+  //缓存容器，缓存实体TransactionalCache实现了Cache接口
   private TransactionalCacheManager tcm = new TransactionalCacheManager();
 
   public CachingExecutor(Executor delegate) {
@@ -94,18 +96,23 @@ public class CachingExecutor implements Executor {
       throws SQLException {
     Cache cache = ms.getCache();
     if (cache != null) {
+      //根据flushCache参数决定是否刷新缓存区
       flushCacheIfRequired(ms);
       if (ms.isUseCache() && resultHandler == null) {
+    	//校验boundSql中的绑定参数列表是否包含输出参数，如果包含则抛出异常，Mybatis不支持存储过程结果缓存
         ensureNoOutParams(ms, parameterObject, boundSql);
         @SuppressWarnings("unchecked")
+        //从缓存中获取MappedStatement对应的查询结果
         List<E> list = (List<E>) tcm.getObject(cache, key);
         if (list == null) {
+          //如果没有缓存实例，则调用delegate执行query，并将结果放入缓存区
           list = delegate.<E> query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
           tcm.putObject(cache, key, list); // issue #578 and #116
         }
         return list;
       }
     }
+    //如果MappedStatement配置不使用缓存则直接调用delegate进行查询
     return delegate.<E> query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 

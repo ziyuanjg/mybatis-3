@@ -144,7 +144,10 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
     try {
+      //在configuration中维护了一个Map<String, MappedStatement>集合，在初始化的时候会读取所有sql配置文件中的信息，
+      //每个sql会生成一个对应的上下文MappedStatement，缓存在这个集合中。
       MappedStatement ms = configuration.getMappedStatement(statement);
+      //具体操作下放至Executor执行
       return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);

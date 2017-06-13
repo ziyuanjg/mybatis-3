@@ -25,8 +25,11 @@ public class PoolState {
 
   protected PooledDataSource dataSource;
 
+  //空闲连接队列
   protected final List<PooledConnection> idleConnections = new ArrayList<PooledConnection>();
+  //活跃连接队列
   protected final List<PooledConnection> activeConnections = new ArrayList<PooledConnection>();
+  
   protected long requestCount = 0;
   protected long accumulatedRequestTime = 0;
   protected long accumulatedCheckoutTime = 0;

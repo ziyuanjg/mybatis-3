@@ -90,15 +90,19 @@ public class CacheBuilder {
   }
 
   public Cache build() {
+	//设置默认实现类PerpetualCache和装饰类LruCache
     setDefaultImplementations();
+    //创建PerpetualCache实例
     Cache cache = newBaseCacheInstance(implementation, id);
+    //设置propertie属性
     setCacheProperties(cache);
-    // issue #352, do not apply decorators to custom caches
     if (PerpetualCache.class.equals(cache.getClass())) {
+      //装饰者
       for (Class<? extends Cache> decorator : decorators) {
         cache = newCacheDecoratorInstance(decorator, cache);
         setCacheProperties(cache);
       }
+      //根据flushInterval，readOnly，blocking属性装饰缓存
       cache = setStandardDecorators(cache);
     } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
       cache = new LoggingCache(cache);

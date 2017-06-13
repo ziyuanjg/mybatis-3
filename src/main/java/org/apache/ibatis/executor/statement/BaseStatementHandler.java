@@ -85,8 +85,11 @@ public abstract class BaseStatementHandler implements StatementHandler {
     ErrorContext.instance().sql(boundSql.getSql());
     Statement statement = null;
     try {
+      //实例化statement，由子类进行差异化实现
       statement = instantiateStatement(connection);
+      //设置statement超时时间
       setStatementTimeout(statement, transactionTimeout);
+      //设置每次返回的结果集大小，取决于xml中的fetchSize值
       setFetchSize(statement);
       return statement;
     } catch (SQLException e) {
@@ -100,6 +103,7 @@ public abstract class BaseStatementHandler implements StatementHandler {
 
   protected abstract Statement instantiateStatement(Connection connection) throws SQLException;
 
+  //设置statement超时时间
   protected void setStatementTimeout(Statement stmt, Integer transactionTimeout) throws SQLException {
     Integer queryTimeout = null;
     if (mappedStatement.getTimeout() != null) {
@@ -113,6 +117,7 @@ public abstract class BaseStatementHandler implements StatementHandler {
     StatementUtil.applyTransactionTimeout(stmt, queryTimeout, transactionTimeout);
   }
 
+  //设置fetchSize（每次返回的条数）
   protected void setFetchSize(Statement stmt) throws SQLException {
     Integer fetchSize = mappedStatement.getFetchSize();
     if (fetchSize != null) {

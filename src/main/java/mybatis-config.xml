@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+  
+  
+ <configuration>
+ 
+ 	<properties resource="param.properties">
+ 		<property name="username" value="aaa"/>
+ 	</properties>
+ 	
+ 	<settings>
+ 		<!-- <setting name="defaultExecutorType" value="BATCH"/> -->
+ 		<!-- <setting name="cacheEnabled" value="true"/> -->
+ 		<setting name="localCacheScope" value="SESSION" />
+ 		<setting name="logImpl" value="LOG4J" />
+ 	</settings>
+ 	
+ 	<plugins>
+ 		<plugin interceptor="interceptor.ExampleInterceptor"></plugin>
+ 		<plugin interceptor="interceptor.Intercrptors"></plugin>
+ 	</plugins>
+ 	<environments default="development1">
+ 		<environment id="development1">
+ 			<transactionManager type="JDBC"></transactionManager>
+ 			<dataSource type="UNPOOLED">
+ 				<property name="driver" value="${driver1}"/>
+		        <property name="url" value="${url1}"/>
+		        <property name="username" value="${username1}"/>
+		        <property name="password" value="${password1}"/>
+ 			</dataSource>
+ 		</environment>
+ 		
+ 		<environment id="development2">
+ 			<transactionManager type="JDBC"></transactionManager>
+ 			<dataSource type="POOLED">
+ 				<property name="driver" value="${driver2}"/>
+		        <property name="url" value="${url2}"/>
+		        <property name="username" value="${username2}"/>
+		        <property name="password" value="${password2}"/>
+ 			</dataSource>
+ 		</environment>
+ 	</environments>
+ 	
+	
+ 	<mappers>
+ 		<mapper resource="daoXml/User.xml"/>
+ 	</mappers>
+ 	
+ 	
+ 	
+ </configuration>
+ 
+ 

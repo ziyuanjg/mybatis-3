@@ -29,7 +29,9 @@ import org.apache.ibatis.reflection.SystemMetaObject;
  */
 public class UnpooledDataSourceFactory implements DataSourceFactory {
 
+  //驱动前缀
   private static final String DRIVER_PROPERTY_PREFIX = "driver.";
+  //驱动前缀长度
   private static final int DRIVER_PROPERTY_PREFIX_LENGTH = DRIVER_PROPERTY_PREFIX.length();
 
   protected DataSource dataSource;
@@ -38,6 +40,9 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
     this.dataSource = new UnpooledDataSource();
   }
 
+  /**
+   * 设置url，driver，username，password等参数
+   */
   @Override
   public void setProperties(Properties properties) {
     Properties driverProperties = new Properties();
@@ -49,6 +54,7 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
         driverProperties.setProperty(propertyName.substring(DRIVER_PROPERTY_PREFIX_LENGTH), value);
       } else if (metaDataSource.hasSetter(propertyName)) {
         String value = (String) properties.get(propertyName);
+        //根据metaDataSource中propertyName的setter方法确定value的类型
         Object convertedValue = convertValue(metaDataSource, propertyName, value);
         metaDataSource.setValue(propertyName, convertedValue);
       } else {

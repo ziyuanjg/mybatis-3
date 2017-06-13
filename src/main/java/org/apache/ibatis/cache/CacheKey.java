@@ -67,12 +67,15 @@ public class CacheKey implements Cloneable, Serializable {
   }
 
   private void doUpdate(Object object) {
+	//得到对象的hashCode
     int baseHashCode = object == null ? 1 : object.hashCode();
-
+    //计数器+1
     count++;
+    //累加CacheKey组合参数的hashCode
     checksum += baseHashCode;
+    //扩大对象的hashCode为count倍
     baseHashCode *= count;
-
+    //CacheKey的hashCode变为原hashCode*扩展系数（默认37）+此对象的hashCode
     hashcode = multiplier * hashcode + baseHashCode;
 
     updateList.add(object);

@@ -198,15 +198,22 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void cacheElement(XNode context) throws Exception {
     if (context != null) {
+      //自定义缓存类型
       String type = context.getStringAttribute("type", "PERPETUAL");
       Class<? extends Cache> typeClass = typeAliasRegistry.resolveAlias(type);
+      //缓存过期类型装饰类
       String eviction = context.getStringAttribute("eviction", "LRU");
       Class<? extends Cache> evictionClass = typeAliasRegistry.resolveAlias(eviction);
+      //缓存刷新间隔
       Long flushInterval = context.getLongAttribute("flushInterval");
+      //引用数量
       Integer size = context.getIntAttribute("size");
+      //是否只读
       boolean readWrite = !context.getBooleanAttribute("readOnly", false);
       boolean blocking = context.getBooleanAttribute("blocking", false);
+      //cache标签张配置的propertie属性
       Properties props = context.getChildrenAsProperties();
+      //创建缓存对象MappedStatement
       builderAssistant.useNewCache(typeClass, evictionClass, flushInterval, size, readWrite, blocking, props);
     }
   }

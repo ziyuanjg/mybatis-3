@@ -42,11 +42,13 @@ public class MapperRegistry {
 
   @SuppressWarnings("unchecked")
   public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
+	//首先获取mapper代理工厂实例
     final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
     if (mapperProxyFactory == null) {
       throw new BindingException("Type " + type + " is not known to the MapperRegistry.");
     }
     try {
+      //通过工厂实例创建mapper的代理实例
       return mapperProxyFactory.newInstance(sqlSession);
     } catch (Exception e) {
       throw new BindingException("Error getting mapper instance. Cause: " + e, e);
@@ -58,17 +60,20 @@ public class MapperRegistry {
   }
 
   public <T> void addMapper(Class<T> type) {
+	//mapper类限定只能是接口
     if (type.isInterface()) {
+      //初始化上下文时会注册所有已检索的mapper接口，所以通常不会出现这个异常，除非配置有问题
       if (hasMapper(type)) {
         throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
       }
+      //用于finally中校验已注册的mapper对象是否是完整对象，如果对象信息不完整则从缓存中删除
       boolean loadCompleted = false;
       try {
+    	//knownMappers是一个Map<Class<?>, MapperProxyFactory<?>>集合，
+    	//此处实例化一个mapper接口对应的MapperProxyFactory放入集合中，供之后实例化时调用。
         knownMappers.put(type, new MapperProxyFactory<T>(type));
-        // It's important that the type is added before the parser is run
-        // otherwise the binding may automatically be attempted by the
-        // mapper parser. If the type is already known, it won't try.
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
+        //此处会生成对应的MappedStatement，并且放入Configuration的缓存集合mappedStatements中
         parser.parse();
         loadCompleted = true;
       } finally {
@@ -79,16 +84,10 @@ public class MapperRegistry {
     }
   }
 
-  /**
-   * @since 3.2.2
-   */
   public Collection<Class<?>> getMappers() {
     return Collections.unmodifiableCollection(knownMappers.keySet());
   }
 
-  /**
-   * @since 3.2.2
-   */
   public void addMappers(String packageName, Class<?> superType) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<Class<?>>();
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
@@ -98,9 +97,6 @@ public class MapperRegistry {
     }
   }
 
-  /**
-   * @since 3.2.2
-   */
   public void addMappers(String packageName) {
     addMappers(packageName, Object.class);
   }

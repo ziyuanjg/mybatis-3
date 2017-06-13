@@ -46,11 +46,13 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
    */
   public static final Jdbc3KeyGenerator INSTANCE = new Jdbc3KeyGenerator();
 
+  //在插入操作之前执行
   @Override
   public void processBefore(Executor executor, MappedStatement ms, Statement stmt, Object parameter) {
     // do nothing
   }
 
+  //在插入操作后执行
   @Override
   public void processAfter(Executor executor, MappedStatement ms, Statement stmt, Object parameter) {
     processBatch(ms, stmt, getParameters(parameter));
@@ -59,22 +61,31 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
   public void processBatch(MappedStatement ms, Statement stmt, Collection<Object> parameters) {
     ResultSet rs = null;
     try {
+      //获取返回的主键值
       rs = stmt.getGeneratedKeys();
       final Configuration configuration = ms.getConfiguration();
+      //获取类型处理器容器
       final TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
+      //获取xml中配置的返回属性名称集合
       final String[] keyProperties = ms.getKeyProperties();
+      //获取result中的列名称和类型信息
       final ResultSetMetaData rsmd = rs.getMetaData();
       TypeHandler<?>[] typeHandlers = null;
+      //如果xml中没有配置返回字段或者实际返回的字段数少于配置字段数则不会进行绑定
       if (keyProperties != null && rsmd.getColumnCount() >= keyProperties.length) {
         for (Object parameter : parameters) {
-          // there should be one row for each statement (also one for each parameter)
+          //通常每个statement都有一条结果数据
           if (!rs.next()) {
             break;
           }
+          //创建参数对象的元对象实例，此处是关键，因为实际上后面是将返回的字段信息写入这个metaParam对象中，而metaParam对象持有parameter对象的引用
+          //所以实际上数据是写入到了BatchResult的参数对象中
           final MetaObject metaParam = configuration.newMetaObject(parameter);
+          //如果类型处理器为空则根据返回类型获取一个符合的类型处理器
           if (typeHandlers == null) {
             typeHandlers = getTypeHandlers(typeHandlerRegistry, metaParam, keyProperties, rsmd);
           }
+          //将返回数据写入BatchResult的参数对象
           populateKeys(rs, metaParam, keyProperties, typeHandlers);
         }
       }

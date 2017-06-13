@@ -53,6 +53,7 @@ public class TransactionalCacheManager {
 
   private TransactionalCache getTransactionalCache(Cache cache) {
     TransactionalCache txCache = transactionalCaches.get(cache);
+    //如果此SqlSession的缓存集合中不包含cache，则创建cache的装饰类TransactionalCache并放入transactionalCaches中
     if (txCache == null) {
       txCache = new TransactionalCache(cache);
       transactionalCaches.put(cache, txCache);

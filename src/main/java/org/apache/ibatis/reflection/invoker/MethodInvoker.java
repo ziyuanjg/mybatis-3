@@ -28,7 +28,7 @@ public class MethodInvoker implements Invoker {
 
   public MethodInvoker(Method method) {
     this.method = method;
-
+    //此处设置类型是为了方便get、set方法
     if (method.getParameterTypes().length == 1) {
       type = method.getParameterTypes()[0];
     } else {

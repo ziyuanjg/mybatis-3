@@ -46,7 +46,6 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
   @Override
   public <T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
     Class<?> classToCreate = resolveInterface(type);
-    // we know types are assignable
     return (T) instantiateClass(classToCreate, constructorArgTypes, constructorArgs);
   }
 
@@ -55,16 +54,27 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
     // no props for default
   }
 
+  /**
+   * 实例化对象实例
+   * @param type
+   * @param constructorArgTypes
+   * @param constructorArgs
+   * @return
+   */
   <T> T instantiateClass(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
     try {
       Constructor<T> constructor;
       if (constructorArgTypes == null || constructorArgs == null) {
+    	//构造参数与构造参数类型有一项为空，则获取对象的无参构造方法
         constructor = type.getDeclaredConstructor();
         if (!constructor.isAccessible()) {
+          //如果开启了java的安全检查，将其关闭，提高反射性能
           constructor.setAccessible(true);
         }
+        //构造对象实例
         return constructor.newInstance();
       }
+      //根据传入构造参数信息获取对应构造方法
       constructor = type.getDeclaredConstructor(constructorArgTypes.toArray(new Class[constructorArgTypes.size()]));
       if (!constructor.isAccessible()) {
         constructor.setAccessible(true);
@@ -91,6 +101,11 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
     }
   }
 
+  /**
+   * 分析创建对象的类型
+   * @param type
+   * @return
+   */
   protected Class<?> resolveInterface(Class<?> type) {
     Class<?> classToCreate;
     if (type == List.class || type == Collection.class || type == Iterable.class) {

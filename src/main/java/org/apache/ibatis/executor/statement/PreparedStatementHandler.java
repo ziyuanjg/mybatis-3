@@ -43,10 +43,15 @@ public class PreparedStatementHandler extends BaseStatementHandler {
   @Override
   public int update(Statement statement) throws SQLException {
     PreparedStatement ps = (PreparedStatement) statement;
+    //执行sql
     ps.execute();
+    //获取修改的行数
     int rows = ps.getUpdateCount();
+    //获取参数对象
     Object parameterObject = boundSql.getParameterObject();
+    //获取主键生成器
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
+    //将修改行的主键信息反写回parameterObject
     keyGenerator.processAfter(executor, mappedStatement, ps, parameterObject);
     return rows;
   }
@@ -73,17 +78,23 @@ public class PreparedStatementHandler extends BaseStatementHandler {
 
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
+	//获取sql
     String sql = boundSql.getSql();
     if (mappedStatement.getKeyGenerator() instanceof Jdbc3KeyGenerator) {
+      //获取xml配置的指定列名
       String[] keyColumnNames = mappedStatement.getKeyColumns();
       if (keyColumnNames == null) {
+    	//创建能返回自动生成键的PreparedStatement实例
         return connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
       } else {
+    	//创建能返回指定数组指定的自动生成键的PreparedStatement实例
         return connection.prepareStatement(sql, keyColumnNames);
       }
     } else if (mappedStatement.getResultSetType() != null) {
+      //创建能返回指定类型的ResultSet的PreparedStatement实例
       return connection.prepareStatement(sql, mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);
     } else {
+      //创建普通PreparedStatement实例
       return connection.prepareStatement(sql);
     }
   }

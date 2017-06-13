@@ -43,9 +43,12 @@ public class BeanWrapper extends BaseWrapper {
   @Override
   public Object get(PropertyTokenizer prop) {
     if (prop.getIndex() != null) {
+      //如果是子级对象是集合类型，则先取出集合对象
       Object collection = resolveCollection(prop, object);
+      //从集合对象中取出对应属性的值
       return getCollectionValue(prop, collection);
     } else {
+      //从bean对象中取出对应属性的值
       return getBeanProperty(prop, object);
     }
   }
@@ -53,9 +56,12 @@ public class BeanWrapper extends BaseWrapper {
   @Override
   public void set(PropertyTokenizer prop, Object value) {
     if (prop.getIndex() != null) {
+      //如果是子级对象是集合类型，则先取出集合对象
       Object collection = resolveCollection(prop, object);
+      //将值放入对象的指定key中
       setCollectionValue(prop, collection, value);
     } else {
+      //为指定属性赋值
       setBeanProperty(prop, object, value);
     }
   }
@@ -79,6 +85,7 @@ public class BeanWrapper extends BaseWrapper {
   public Class<?> getSetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
+      //如果是多级参数，依次向下直到获取最底级参数对象
       MetaObject metaValue = metaObject.metaObjectForProperty(prop.getIndexedName());
       if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
         return metaClass.getSetterType(name);
@@ -143,13 +150,19 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 实例化子级对象的元对象
+   */
   @Override
   public MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory) {
     MetaObject metaValue;
     Class<?> type = getSetterType(prop.getName());
     try {
+      //创建子级对象实例
       Object newObject = objectFactory.create(type);
+      //创建实例的元对象实例
       metaValue = MetaObject.forObject(newObject, metaObject.getObjectFactory(), metaObject.getObjectWrapperFactory(), metaObject.getReflectorFactory());
+      //将子级对象放入父级对象中，类似user.setName()
       set(prop, newObject);
     } catch (Exception e) {
       throw new ReflectionException("Cannot set value of property '" + name + "' because '" + name + "' is null and cannot be instantiated on instance of " + type.getName() + ". Cause:" + e.toString(), e);
@@ -159,6 +172,7 @@ public class BeanWrapper extends BaseWrapper {
 
   private Object getBeanProperty(PropertyTokenizer prop, Object object) {
     try {
+      //通过反射获取该属性的getter方法
       Invoker method = metaClass.getGetInvoker(prop.getName());
       try {
         return method.invoke(object, NO_ARGUMENTS);
@@ -174,6 +188,7 @@ public class BeanWrapper extends BaseWrapper {
 
   private void setBeanProperty(PropertyTokenizer prop, Object object, Object value) {
     try {
+      //通过反射获取该属性的setter方法
       Invoker method = metaClass.getSetInvoker(prop.getName());
       Object[] params = {value};
       try {

@@ -43,6 +43,11 @@ public class MetaClass {
     return new MetaClass(type, reflectorFactory);
   }
 
+  /**
+   * 创建属性对应类型的元类
+   * @param name
+   * @return
+   */
   public MetaClass metaClassForProperty(String name) {
     Class<?> propType = reflector.getGetterType(name);
     return MetaClass.forClass(propType, reflectorFactory);
@@ -68,6 +73,11 @@ public class MetaClass {
     return reflector.getSetablePropertyNames();
   }
 
+  /**
+   * 获取name属性的类型
+   * @param name
+   * @return
+   */
   public Class<?> getSetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
@@ -78,6 +88,11 @@ public class MetaClass {
     }
   }
 
+  /**
+   * 获取name属性的类型
+   * @param name
+   * @return
+   */
   public Class<?> getGetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
@@ -88,14 +103,25 @@ public class MetaClass {
     return getGetterType(prop);
   }
 
+  /**
+   * 创建prop中的一级属性的元类
+   * @param prop
+   * @return
+   */
   private MetaClass metaClassForProperty(PropertyTokenizer prop) {
     Class<?> propType = getGetterType(prop);
     return MetaClass.forClass(propType, reflectorFactory);
   }
 
+  /**
+   * 获取prop中一级属性的类型
+   * @param prop
+   * @return
+   */
   private Class<?> getGetterType(PropertyTokenizer prop) {
     Class<?> type = reflector.getGetterType(prop.getName());
     if (prop.getIndex() != null && Collection.class.isAssignableFrom(type)) {
+      //prop指定属性为实现了Collection接口的集合类型
       Type returnType = getGenericGetterType(prop.getName());
       if (returnType instanceof ParameterizedType) {
         Type[] actualTypeArguments = ((ParameterizedType) returnType).getActualTypeArguments();
@@ -132,9 +158,15 @@ public class MetaClass {
     return null;
   }
 
+  /**
+   * 查询是否存在name属性的setter方法
+   * @param name
+   * @return
+   */
   public boolean hasSetter(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
+      //如果是多级属性，会依次向下递归，查询指定的最底层属性的setter方法
       if (reflector.hasSetter(prop.getName())) {
         MetaClass metaProp = metaClassForProperty(prop.getName());
         return metaProp.hasSetter(prop.getChildren());
@@ -146,6 +178,11 @@ public class MetaClass {
     }
   }
 
+  /**
+   * 查询是否存在name属性的getter方法
+   * @param name
+   * @return
+   */
   public boolean hasGetter(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
@@ -160,10 +197,12 @@ public class MetaClass {
     }
   }
 
+  //获取name属性的getter调用器
   public Invoker getGetInvoker(String name) {
     return reflector.getGetInvoker(name);
   }
 
+  //获取name属性的setter调用器
   public Invoker getSetInvoker(String name) {
     return reflector.getSetInvoker(name);
   }

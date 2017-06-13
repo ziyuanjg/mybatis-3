@@ -232,14 +232,14 @@ class PooledConnection implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     String methodName = method.getName();
+    //当执行close方法时，不会真的关闭连接，会根据连接池的状态决定如何处理
     if (CLOSE.hashCode() == methodName.hashCode() && CLOSE.equals(methodName)) {
       dataSource.pushConnection(this);
       return null;
     } else {
       try {
         if (!Object.class.equals(method.getDeclaringClass())) {
-          // issue #579 toString() should never fail
-          // throw an SQLException instead of a Runtime
+          //检查连接是否可用
           checkConnection();
         }
         return method.invoke(realConnection, args);

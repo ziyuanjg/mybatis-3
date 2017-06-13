@@ -70,25 +70,34 @@ public class ReuseExecutor extends BaseExecutor {
 
   @Override
   public List<BatchResult> doFlushStatements(boolean isRollback) throws SQLException {
+	//遍历statement缓存池，依次关闭
     for (Statement stmt : statementMap.values()) {
       closeStatement(stmt);
     }
+    //清空缓存池
     statementMap.clear();
     return Collections.emptyList();
   }
 
   private Statement prepareStatement(StatementHandler handler, Log statementLog) throws SQLException {
     Statement stmt;
+    //获取sql对象
     BoundSql boundSql = handler.getBoundSql();
     String sql = boundSql.getSql();
+    //判断缓存池中是否有此sql的statement实例
     if (hasStatementFor(sql)) {
+      //获取缓存池中的statement实例
       stmt = getStatement(sql);
+      //设置事务过期时间
       applyTransactionTimeout(stmt);
     } else {
+      //缓存池中没有此sql的statement实例时，通过StatementHandler创建新实例
       Connection connection = getConnection(statementLog);
       stmt = handler.prepare(connection, transaction.getTimeout());
+      //将statement实例放入缓存池
       putStatement(sql, stmt);
     }
+    //为statement绑定参数
     handler.parameterize(stmt);
     return stmt;
   }

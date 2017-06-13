@@ -64,9 +64,10 @@ public class TransactionalCache implements Cache {
 
   @Override
   public Object getObject(Object key) {
-    // issue #116
+    // 此处实际调用的是默认实现PerpetualCache的getObject方法
     Object object = delegate.getObject(key);
     if (object == null) {
+      //此处是将缓存缓存的key放入缓存队列中，并没有直接放入二级缓存，只有调用commit方法才会将队列中的key依次放入二级缓存
       entriesMissedInCache.add(key);
     }
     // issue #146

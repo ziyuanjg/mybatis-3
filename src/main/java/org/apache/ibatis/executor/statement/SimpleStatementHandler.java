@@ -42,13 +42,19 @@ public class SimpleStatementHandler extends BaseStatementHandler {
 
   @Override
   public int update(Statement statement) throws SQLException {
+	//获取sql
     String sql = boundSql.getSql();
+    //获取参数对象
     Object parameterObject = boundSql.getParameterObject();
+    //获取主键生产器
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
     int rows;
+    //根据KeyGenerator的具体类型决定是否返回修改数据的主键，具体逻辑放在KeyGenerator中讲解
     if (keyGenerator instanceof Jdbc3KeyGenerator) {
       statement.execute(sql, Statement.RETURN_GENERATED_KEYS);
+      //获取修改行数
       rows = statement.getUpdateCount();
+      //将返回的主键信息添加到parameterObject中
       keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
     } else if (keyGenerator instanceof SelectKeyGenerator) {
       statement.execute(sql);
@@ -63,27 +69,37 @@ public class SimpleStatementHandler extends BaseStatementHandler {
 
   @Override
   public void batch(Statement statement) throws SQLException {
+	//获取sql
     String sql = boundSql.getSql();
+    //执行批处理
     statement.addBatch(sql);
   }
 
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
+	//获取sql
     String sql = boundSql.getSql();
+    //执行查询
     statement.execute(sql);
+    //处理结果集
     return resultSetHandler.<E>handleResultSets(statement);
   }
 
   @Override
   public <E> Cursor<E> queryCursor(Statement statement) throws SQLException {
+	//获取sql
     String sql = boundSql.getSql();
+    //执行查询
     statement.execute(sql);
+    //处理结果集
     return resultSetHandler.<E>handleCursorResultSets(statement);
   }
 
   @Override
+  //通过Connection创建Statement实例
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     if (mappedStatement.getResultSetType() != null) {
+      //创建能返回指定类型的ResultSet的Statement实例
       return connection.createStatement(mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);
     } else {
       return connection.createStatement();

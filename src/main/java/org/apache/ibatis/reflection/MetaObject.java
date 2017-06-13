@@ -44,6 +44,7 @@ public class MetaObject {
     this.objectWrapperFactory = objectWrapperFactory;
     this.reflectorFactory = reflectorFactory;
 
+    //根据传入参数判断实例化哪种包装类
     if (object instanceof ObjectWrapper) {
       this.objectWrapper = (ObjectWrapper) object;
     } else if (objectWrapperFactory.hasWrapperFor(object)) {
@@ -112,13 +113,17 @@ public class MetaObject {
   public Object getValue(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
+      //如果传入的是多级参数名，则会依次向下直到获取最原始的被包装对象
       MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
       if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
+    	//如果下级对象是null，则返回null。
         return null;
       } else {
+    	//依次向下取值
         return metaValue.getValue(prop.getChildren());
       }
     } else {
+      //获取指定属性
       return objectWrapper.get(prop);
     }
   }
@@ -126,21 +131,31 @@ public class MetaObject {
   public void setValue(String name, Object value) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
+      //如果传入的是多级参数名，则会依次向下直到获取最原始的被包装对象
       MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
       if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
+    	//此包装类的上一层为NULL
         if (value == null && prop.getChildren() != null) {
-          // don't instantiate child path if value is null
+          //如果值为空且仍有下级对象，则不进行set
           return;
         } else {
+          //实例化子级对象的元对象
           metaValue = objectWrapper.instantiatePropertyValue(name, prop, objectFactory);
         }
       }
+      //依次向下调用
       metaValue.setValue(prop.getChildren(), value);
     } else {
+      //将属性放入指定对象
       objectWrapper.set(prop, value);
     }
   }
 
+  /**
+   * 实例化指定属性的元对象
+   * @param name
+   * @return
+   */
   public MetaObject metaObjectForProperty(String name) {
     Object value = getValue(name);
     return MetaObject.forObject(value, objectFactory, objectWrapperFactory, reflectorFactory);

@@ -41,8 +41,10 @@ public class Plugin implements InvocationHandler {
   }
 
   public static Object wrap(Object target, Interceptor interceptor) {
+	//获取Interceptor的拦截类和方法
     Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
     Class<?> type = target.getClass();
+    //匹配传入对象target是否实现Interceptor指定拦截的接口
     Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
     if (interfaces.length > 0) {
       return Proxy.newProxyInstance(
@@ -57,7 +59,9 @@ public class Plugin implements InvocationHandler {
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
       Set<Method> methods = signatureMap.get(method.getDeclaringClass());
+      //匹配当前执行方法是否存在对应拦截器
       if (methods != null && methods.contains(method)) {
+    	//存在则执行拦截器的intercept方法
         return interceptor.intercept(new Invocation(target, method, args));
       }
       return method.invoke(target, args);
@@ -68,19 +72,22 @@ public class Plugin implements InvocationHandler {
 
   private static Map<Class<?>, Set<Method>> getSignatureMap(Interceptor interceptor) {
     Intercepts interceptsAnnotation = interceptor.getClass().getAnnotation(Intercepts.class);
-    // issue #251
+    //MyBatis仅支持@Intercepts注解标注的拦截器
     if (interceptsAnnotation == null) {
       throw new PluginException("No @Intercepts annotation was found in interceptor " + interceptor.getClass().getName());      
     }
+    //获取@Intercepts注解的参数
     Signature[] sigs = interceptsAnnotation.value();
     Map<Class<?>, Set<Method>> signatureMap = new HashMap<Class<?>, Set<Method>>();
     for (Signature sig : sigs) {
+      //获取@Signature注解
       Set<Method> methods = signatureMap.get(sig.type());
       if (methods == null) {
         methods = new HashSet<Method>();
         signatureMap.put(sig.type(), methods);
       }
       try {
+    	//根据@Signature注解的参数实例化执行方法，并放入signatureMap的对应集合中
         Method method = sig.type().getMethod(sig.method(), sig.args());
         methods.add(method);
       } catch (NoSuchMethodException e) {
@@ -93,11 +100,13 @@ public class Plugin implements InvocationHandler {
   private static Class<?>[] getAllInterfaces(Class<?> type, Map<Class<?>, Set<Method>> signatureMap) {
     Set<Class<?>> interfaces = new HashSet<Class<?>>();
     while (type != null) {
+      //获取类的所有接口
       for (Class<?> c : type.getInterfaces()) {
         if (signatureMap.containsKey(c)) {
           interfaces.add(c);
         }
       }
+      //遍历父类的实现接口
       type = type.getSuperclass();
     }
     return interfaces.toArray(new Class<?>[interfaces.size()]);

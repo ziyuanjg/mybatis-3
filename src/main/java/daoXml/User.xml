@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="daoMapper.UserMapper">
+
+  	<select id="selectUser" resultType="dao.User" >
+  		select * from policy where id=#{id}
+  	</select>
+  
+  	<select id="selectIDByUser" resultType="int" parameterType="dao.User" flushCache="true">
+  		select id from users where phoneNO = #{phoneNO}
+  	</select>
+  	<select id="selectPolicy" parameterType="int" resultType="int">
+  		select userID from policy where id=#{id}
+  	</select>
+  	<select id="selectCity"  parameterType="int" resultType="String">
+  		select cityName from city where id=#{id}
+  	</select>
+  	
+  	<select id="selectList" resultType="String" parameterType="int" statementType="CALLABLE">
+  		select id from users limit #{start},#{end}
+  	</select>
+  	
+  	<select id="selectCityName" resultType="String" parameterType="int" useCache="true">
+		select cityName from city where id = #{id}	
+  	</select>
+  	
+  	<insert id="insertUser" useGeneratedKeys="true" keyProperty="id"  >
+  		insert into users (phoneNO) values (#{phoneNO})
+  	</insert>
+  </mapper>
